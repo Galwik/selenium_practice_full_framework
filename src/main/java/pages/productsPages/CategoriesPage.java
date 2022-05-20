@@ -1,4 +1,4 @@
-package pages.productsPages.categories;
+package pages.productsPages;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -84,5 +84,10 @@ public class CategoriesPage extends HomePage {
 
     public WebElement getPriceText() {
         return priceText;
+    }
+
+    public ProductPage clickRandomProduct() {
+        click(getRandomElement(getProducts()));
+        return new ProductPage(driver);
     }
 }

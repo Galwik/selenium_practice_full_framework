@@ -3,6 +3,7 @@ package pages;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
 import pages.base.BasePage;
+import pages.models.Product;
 
 import java.math.BigDecimal;
 import java.util.List;

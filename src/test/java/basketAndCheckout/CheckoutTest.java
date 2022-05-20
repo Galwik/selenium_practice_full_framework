@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pages.*;
+import pages.models.Product;
 import pages.models.adress.Address;
 import pages.models.adress.AddressFactory;
 import pages.models.user.User;

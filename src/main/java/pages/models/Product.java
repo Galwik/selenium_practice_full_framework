@@ -1,4 +1,4 @@
-package pages;
+package pages.models;
 
 import java.math.BigDecimal;
 

@@ -3,12 +3,18 @@ package pages.productsPages;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
+import org.slf4j.Logger;
 import pages.BasketPage;
-import pages.Product;
+import pages.models.Product;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ProductPopUpPage extends ProductPage {
     public ProductPopUpPage(WebDriver driver) {
@@ -45,89 +51,39 @@ public class ProductPopUpPage extends ProductPage {
     @FindBy(css = ".shipping.value")
     private WebElement shippingValue;
 
-    public WebElement getPopUp() {
-        return popUp;
-    }
-
-    @Override
-    public WebElement getProductName() {
-        return productName;
-    }
-
-    @Override
-    public WebElement getProductPrice() {
-        return productPrice;
-    }
-
-    public Integer getProductQuantity() {
-        return Integer.parseInt(productQuantity.getText());
-    }
-
-    public WebElement getProductsCountText() {
-        return productsCountText;
-    }
-
-    public WebElement getProductsTotalValue() {
-        return productsTotalValue;
-    }
-
-    public WebElement getContinueShoppingButton() {
-        return continueShoppingButton;
-    }
-
-    public ProductPage clickContinueShopping() {
-        click(getContinueShoppingButton());
+    public ProductPage clickContinueShopping() throws InterruptedException {
+        Thread.sleep(1000);
+        click(continueShoppingButton);
         return new ProductPage(driver);
     }
 
     public ProductPage clickContinueShopping(List<Product> products) throws InterruptedException {
         Thread.sleep(1000);
         addProductInfoToList(products);
-        click(getContinueShoppingButton());
+        click(continueShoppingButton);
         return new ProductPage(driver);
     }
 
     @Override
-    public ProductPage addProductInfoToList(List<Product> products) {
-        waitForPageLoad();
+    public ProductPage addProductInfoToList(List<Product> products) throws InterruptedException {
+        Thread.sleep(1000);
         AtomicBoolean alreadyInCart = new AtomicBoolean(false);
         products.forEach(x -> {
             if (x.getName().equals(getProductName().getText())) {
-                x.setQuantity(BigDecimal.valueOf(getProductQuantity()));
+                x.setQuantity(new BigDecimal(productQuantity.getText()));
                 alreadyInCart.set(true);
             }
         });
         if (!alreadyInCart.get()) {
-            products.add(new Product(getProductName().getText(), getPriceAndConvertToBigDecimal(getProductPrice()), BigDecimal.valueOf(getProductQuantity())));
+            products.add(new Product(productName.getText(), getPriceAndConvertToBigDecimal(productPrice), new BigDecimal(productQuantity.getText())));
         }
         return this;
     }
 
-    public Integer getNumberOfAllProductsInCart() {
-        String[] split = getProductsCountText().getText().split(" ");
+    public BigDecimal getNumberOfAllProductsInCart() {
+        String[] split = productsCountText.getText().split(" ");
         logger.info("Number of products after split: " + split[2]);
-        return Integer.parseInt(split[2]);
-    }
-
-    public Double getPriceAndConvertToDouble(WebElement element) {
-        if (element.getText().equals("Free")) {
-            return 0.0;
-        }
-        String replace = element.getText().replace("$", "");
-        return Double.parseDouble(replace);
-    }
-
-    public WebElement getPopUpLabel() {
-        return popUpLabel;
-    }
-
-    public WebElement getShippingValue() {
-        return shippingValue;
-    }
-
-    public BasketPage clickProceedToCheckout() {
-        click(proceedToCheckout);
-        return new BasketPage(driver);
+        return new BigDecimal(split[2]);
     }
 
     public BasketPage clickProceedToCheckout(List<Product> products) throws InterruptedException {
@@ -135,5 +91,47 @@ public class ProductPopUpPage extends ProductPage {
         addProductInfoToList(products);
         click(proceedToCheckout);
         return new BasketPage(driver);
+    }
+
+    public ProductPopUpPage checkDetails(List<Product> products) throws InterruptedException {
+        addProductInfoToList(products);
+        Product product = products.get(products.size() - 1);
+        BigDecimal totalQuantity = new BigDecimal(products.stream().mapToInt(x -> x.getQuantity().intValue()).sum());
+
+        logger.info("totalValue: " + totalValue(products));
+        logger.info("shippingValuestr: " + shippingValue.getText());
+        logger.info("shippingValue: " + shippingValue());
+        logger.info("productsTotalValue: " + getPriceAndConvertToBigDecimal(productsTotalValue));
+
+        assertThat("Wrong product name exp: " + productName.getText() + "   giv: " + product.getName(),
+                productName.getText().equals(product.getName()));
+        assertThat("Wrong product price exp: " + productPrice.getText() + "   giv: " + product.getPrice(),
+                getPriceAndConvertToBigDecimal(productPrice).equals(product.getPrice()));
+        assertThat("Wrong product quantity exp: " + product.getQuantity() + "   giv: " + productQuantity.getText(),
+                product.getQuantity().equals(new BigDecimal(productQuantity.getText())));
+        assertThat("Wrong summary quantity exp: " + getNumberOfAllProductsInCart() + "   giv: " + totalQuantity,
+                getNumberOfAllProductsInCart().equals(totalQuantity));
+        assertThat("Wrong total value exp: " + productsTotalValue.getText() + "   giv: " + totalValue(products),
+                getPriceAndConvertToBigDecimal(productsTotalValue).equals(totalValue(products)));
+
+        return this;
+    }
+
+    private BigDecimal shippingValue() {
+        if (shippingValue.getText().equals("Free")) {
+            return BigDecimal.ZERO;
+        } else {
+            return getPriceAndConvertToBigDecimal(shippingValue);
+        }
+    }
+
+    private BigDecimal totalValue(List<Product> products) {
+        BigDecimal decimal = new BigDecimal("0.00");
+
+        for (Product product : products) {
+             decimal = decimal.add(product.getPrice().multiply(product.getQuantity()));
+        }
+        decimal = decimal.add(shippingValue());
+        return decimal;
     }
 }

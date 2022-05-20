@@ -6,7 +6,7 @@ import org.openqa.selenium.support.FindBy;
 import pages.base.BasePage;
 import pages.productsPages.PricesDropPage;
 import pages.productsPages.ProductPage;
-import pages.productsPages.categories.CategoriesPage;
+import pages.productsPages.CategoriesPage;
 
 import java.util.List;
 
@@ -240,5 +240,10 @@ public class HomePage extends BasePage {
     public HomePage getHome() {
         click(getLogo());
         return super.getHome();
+    }
+
+    public CategoriesPage goToRandomCategory() {
+        click(getRandomElement(getCategories()));
+        return new CategoriesPage(driver);
     }
 }

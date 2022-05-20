@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pages.HomePage;
-import pages.productsPages.categories.CategoriesPage;
+import pages.productsPages.CategoriesPage;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 

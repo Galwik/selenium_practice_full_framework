@@ -5,12 +5,14 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import pages.HomePage;
-import pages.Product;
+import pages.models.Product;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ProductPage extends HomePage {
     public ProductPage(WebDriver driver) {
@@ -62,7 +64,7 @@ public class ProductPage extends HomePage {
         return Integer.parseInt(numberOfItemsInCart.getText().replace("(", "").replace(")", ""));
     }
 
-    public ProductPage addProductInfoToList(List<Product> products) {
+    public ProductPage addProductInfoToList(List<Product> products) throws InterruptedException {
         AtomicBoolean alreadyInCart = new AtomicBoolean(false);
         products.forEach(x -> {
             if (x.getName().equals(getProductName().getText())) {
@@ -71,7 +73,7 @@ public class ProductPage extends HomePage {
             }
         });
         if (!alreadyInCart.get()) {
-            products.add(new Product(getProductName().getText(), getPriceAndConvertToBigDecimal(getProductPrice()), BigDecimal.ONE));
+            products.add(new Product(getProductName().getText(), getPriceAndConvertToBigDecimal(productPrice), BigDecimal.ONE));
         }
         return this;
     }
@@ -109,14 +111,15 @@ public class ProductPage extends HomePage {
         return new ProductPopUpPage(driver);
     }
 
-
-    public Double getPriceAndConvertToDouble(WebElement element) {
-        String replace = element.getText().replace("$", "");
-        return Double.parseDouble(replace);
-    }
-
     public BigDecimal getPriceAndConvertToBigDecimal(WebElement element) {
         String replace = element.getText().replace("$", "");
         return new BigDecimal(replace);
+    }
+
+    public ProductPage checkCartIconQuantity(List<Product> products) {
+        Integer totalQuantity = (products.stream().mapToInt(x -> x.getQuantity().intValue()).sum());
+        assertThat("Wrong quantity on cart icon", getNumberOfItemsInCart().equals(totalQuantity));
+
+        return this;
     }
 }

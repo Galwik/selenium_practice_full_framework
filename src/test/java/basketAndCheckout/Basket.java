@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pages.BasketPage;
 import pages.HomePage;
-import pages.Product;
+import pages.models.Product;
 
 import java.util.ArrayList;
 import java.util.List;
