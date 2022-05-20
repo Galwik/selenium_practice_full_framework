@@ -1,0 +1,6 @@
+browser:
+  browserName: chrome #firefox #chrome #ie #edge
+  headlessBrowser: false
+  webElementTimeOut: 15
+
+---
